@@ -1,0 +1,30 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "🚀 Run Backend (FastAPI)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": ["main:app", "--reload", "--host", "127.0.0.1", "--port", "8000"],
+      "cwd": "${workspaceFolder}/backend",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/backend"
+      },
+      "envFile": "${workspaceFolder}/backend/.env",
+      "jinja": true,
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "🧪 Run Tests",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["tests/", "-v"],
+      "cwd": "${workspaceFolder}/backend",
+      "envFile": "${workspaceFolder}/backend/.env",
+      "console": "integratedTerminal"
+    }
+  ],
+  "compounds": []
+}

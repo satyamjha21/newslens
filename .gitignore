@@ -1,0 +1,26 @@
+# Python
+backend/.venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/.pytest_cache/
+backend/**/*.pyc
+*.pyc
+
+# Environment
+backend/.env
+.env
+
+# Database (don't commit the DB — it will be created on first run)
+backend/*.db
+backend/*.db-shm
+backend/*.db-wal
+
+# VSCode (keep .vscode/ but ignore local settings)
+.vscode/settings.json.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node (if ever added)
+node_modules/

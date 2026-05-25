@@ -1,0 +1,26 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/Scripts/python.exe",
+  "python.terminal.activateEnvironment": true,
+  "python.envFile": "${workspaceFolder}/backend/.env",
+  "[python]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
+  "[javascript]": {
+    "editor.formatOnSave": true
+  },
+  "[html]": {
+    "editor.formatOnSave": false
+  },
+  "editor.tabSize": 2,
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.pytest_cache": true,
+    "**/backend/.venv": true
+  },
+  "editor.rulers": [88],
+  "terminal.integrated.cwd": "${workspaceFolder}",
+  "liveServer.settings.root": "/frontend",
+  "liveServer.settings.port": 5500,
+  "liveServer.settings.CustomBrowser": "chrome"
+}

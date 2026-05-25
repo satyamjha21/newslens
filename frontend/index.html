@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NewsLens — AI News Intelligence Dashboard</title>
+<meta name="description" content="Real-time news intelligence with AI credibility scoring, political lean analysis, rumour detection, and multi-source aggregation across 35+ RSS feeds."/>
+<meta name="theme-color" content="#7f5531"/>
+
+<!-- Open Graph (LinkedIn / Twitter preview) -->
+<meta property="og:title"       content="NewsLens — AI News Intelligence Dashboard"/>
+<meta property="og:description" content="Real-time AI news analysis: credibility scoring, political lean detection, rumour tracking, and sports intel — built with FastAPI + Gemini."/>
+<meta property="og:type"        content="website"/>
+<meta property="og:image"       content="https://picsum.photos/seed/newslens/1200/630"/>
+
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "secondary-fixed-dim": "#cbc5c2", "tertiary-fixed": "#bbeafc", "primary-fixed-dim": "#f3bb90",
+        "error-container": "#f9dedc", "on-surface-variant": "#49454f", "outline": "#79747e",
+        "surface-container-high": "#ecebe8", "primary": "#7f5531", "on-primary": "#ffffff",
+        "primary-container": "#ffdcc2", "on-primary-container": "#2e1500", "secondary": "#5d5e5f",
+        "surface-container": "#f3f3ef", "status-live": "#10b981", "tertiary": "#00677d",
+        "tertiary-container": "#bbeafc", "on-surface": "#1d1b19", "outline-variant": "#dadada",
+        "secondary-container": "#e7e1de", "text-muted": "#6b7280", "surface": "#f9f9f6",
+        "surface-container-lowest": "#ffffff", "surface-container-low": "#f4f4f1",
+        "surface-bright": "#f9f9f6", "error": "#b3261e", "copper-primary": "#c8956c",
+        "background": "#f9f9f6", "surface-dim": "#dadad7", "accent-error": "#b3261e"
+      },
+      borderRadius: { DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px" },
+      fontFamily: {
+        "body-md":           ["Inter"],
+        "headline-md":       ["Playfair Display"],
+        "display-lg":        ["Playfair Display"],
+        "article-headline":  ["Playfair Display"],
+        "meta-sm":           ["JetBrains Mono"],
+        "meta-caps":         ["JetBrains Mono"]
+      },
+      fontSize: {
+        "body-md":          ["15px", { lineHeight: "24px",  fontWeight: "400" }],
+        "headline-md":      ["24px", { lineHeight: "32px",  fontWeight: "600" }],
+        "display-lg":       ["48px", { lineHeight: "56px",  letterSpacing: "-0.02em", fontWeight: "700" }],
+        "article-headline": ["20px", { lineHeight: "24px",  fontWeight: "600" }],
+        "meta-sm":          ["12px", { lineHeight: "16px",  letterSpacing: "0.05em", fontWeight: "400" }],
+        "meta-caps":        ["11px", { lineHeight: "16px",  letterSpacing: "0.1em",  fontWeight: "600" }]
+      }
+    }
+  }
+}
+</script>
+<style>
+/* Ticker */
+.ticker-scroll { display:inline-block; white-space:nowrap; animation:scroll 40s linear infinite; }
+@keyframes scroll { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+
+/* Scrollbar */
+.custom-scrollbar::-webkit-scrollbar       { width:4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background:#f9f9f6; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background:#dadada; }
+
+/* Image */
+.noir-grayscale { filter:grayscale(100%) opacity(0.85); transition:all 0.3s ease; }
+.group:hover .noir-grayscale { filter:grayscale(30%) opacity(1); }
+
+/* Text clamp */
+.line-clamp-2 { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.line-clamp-3 { display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+
+/* Credibility */
+.credibility-bar  { height:4px; border-radius:2px; transition:width 0.6s ease; }
+.credibility-high { background:linear-gradient(90deg,#10b981,#059669); }
+.credibility-mid  { background:linear-gradient(90deg,#f59e0b,#d97706); }
+.credibility-low  { background:linear-gradient(90deg,#ef4444,#b91c1c); }
+
+/* Sidebar */
+.sidebar-item.active { background:#ffdcc2; color:#7f5531; font-weight:600; }
+.sidebar-item { transition:all 0.15s ease; }
+
+/* Bias pills */
+.bias-left   { background:#dbeafe; color:#1d4ed8; }
+.bias-right  { background:#fee2e2; color:#b91c1c; }
+.bias-centre { background:#d1fae5; color:#065f46; }
+.bias-unclear{ background:#f3f4f6; color:#6b7280; }
+
+/* Tab panels */
+.tab-panel        { display:none; }
+.tab-panel.active { display:block; }
+
+/* Saved highlight */
+.saved-card { border-left:3px solid #7f5531; }
+
+/* Fade-in */
+@keyframes fadeInUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+.fade-in { animation:fadeInUp 0.35s ease forwards; }
+
+/* Verdict colors */
+.verdict-confirmed    { color:#059669; }
+.verdict-likely-true  { color:#10b981; }
+.verdict-unverified   { color:#d97706; }
+.verdict-likely-false { color:#ef4444; }
+.verdict-debunked     { color:#b91c1c; }
+
+/* Mobile overlay */
+#mobile-overlay      { display:none; }
+#mobile-overlay.open { display:block; }
+#sidebar.mobile-open { transform:translateX(0) !important; }
+
+@media (max-width:767px) {
+  #sidebar { transform:translateX(-100%); transition:transform 0.25s ease; position:fixed; z-index:60; }
+  .layout-nav, .layout-ticker { padding-right:0 !important; }
+}
+@media (min-width:1024px) {
+  .layout-nav, .layout-ticker { padding-right:252px; }
+}
+
+/* Status live color */
+.text-status-live { color:#10b981; }
+</style>
+<script src="config.js"></script>
+</head>
+<body class="bg-background text-on-surface font-body-md selection:bg-primary-container selection:text-on-primary-container">
+
+<!-- TOP NAV -->
+<nav class="layout-nav fixed top-0 w-full z-50 bg-surface-container-lowest border-b border-outline-variant flex items-center justify-between px-4 md:px-12 h-16">
+  <div class="flex items-center gap-3 min-w-0 flex-1 overflow-hidden">
+    <!-- Mobile hamburger -->
+    <button id="mobile-menu-btn" class="md:hidden p-1 rounded hover:bg-surface-container" aria-label="Open menu">
+      <span class="material-symbols-outlined text-[22px]">menu</span>
+    </button>
+    <span class="font-headline-md tracking-tighter text-on-surface shrink-0">NewsLens</span>
+    <div class="hidden md:flex items-center gap-6 h-full overflow-x-auto">
+      <a class="font-meta-caps text-meta-caps text-primary border-b-2 border-primary pb-1 cursor-pointer" data-nav-genre="World"    href="#">World</a>
+      <a class="font-meta-caps text-meta-caps text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer" data-nav-genre="Politics" href="#">Politics</a>
+      <a class="font-meta-caps text-meta-caps text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer" data-nav-genre="Tech"     href="#">Tech</a>
+      <a class="font-meta-caps text-meta-caps text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer" data-nav-genre="Markets"  href="#">Markets</a>
+      <a class="font-meta-caps text-meta-caps text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer" data-nav-genre="Science"  href="#">Science</a>
+      <a class="font-meta-caps text-meta-caps text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer" data-nav-genre="Culture"  href="#">Culture</a>
+      <a class="font-meta-caps text-meta-caps text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer" data-nav-genre="Sports"   href="#">Sports</a>
+    </div>
+  </div>
+  <div class="flex items-center gap-3 shrink-0 ml-4 pl-4 border-l border-outline-variant/50">
+    <!-- Search -->
+    <div class="hidden md:flex items-center gap-2 bg-surface-container-low border border-outline-variant rounded px-3 py-1.5">
+      <span class="material-symbols-outlined text-[16px] text-on-surface-variant">search</span>
+      <input id="search-input" type="text" placeholder="Search headlines…" class="bg-transparent font-meta-sm text-[11px] outline-none w-36 text-on-surface placeholder:text-on-surface-variant/60"/>
+    </div>
+    <span class="w-2 h-2 rounded-full bg-status-live animate-pulse shrink-0"></span>
+    <span id="api-status" class="font-meta-sm text-[10px] text-on-surface-variant uppercase whitespace-nowrap">Connecting</span>
+  </div>
+</nav>
+
+<!-- TICKER -->
+<div class="layout-ticker fixed top-16 w-full bg-surface-container-low border-b border-outline-variant z-40 overflow-hidden h-8 flex items-center">
+  <div class="px-4 bg-surface-container-low z-10 border-r border-outline-variant shrink-0">
+    <span class="font-meta-caps text-[10px] text-primary uppercase">Live Feed</span>
+  </div>
+  <div id="ticker-content" class="ticker-scroll flex gap-12 font-meta-sm text-meta-sm text-on-surface-variant">
+    <span>LOADING INTELLIGENCE STREAM…</span>
+  </div>
+</div>
+
+<!-- Mobile overlay -->
+<div id="mobile-overlay" class="fixed inset-0 bg-black/40 z-50 md:hidden" onclick="closeSidebar()"></div>
+
+<!-- MAIN LAYOUT -->
+<div class="flex pt-24 min-h-screen">
+
+  <!-- LEFT SIDEBAR -->
+  <aside id="sidebar" class="fixed left-0 top-16 h-[calc(100vh-4rem)] w-[188px] bg-surface border-r border-outline-variant flex-col py-6 px-3 gap-4 hidden md:flex overflow-y-auto custom-scrollbar z-40">
+    <div class="mb-3">
+      <h3 class="font-meta-caps text-meta-caps text-primary uppercase">Filters</h3>
+      <p class="font-meta-sm text-[10px] text-on-surface-variant mt-0.5">Intelligence Tuning</p>
+    </div>
+    <nav class="flex flex-col gap-1">
+      <div id="filter-lean" class="sidebar-item flex items-center gap-3 px-3 py-2 text-primary font-bold bg-primary-container/40 border border-primary/20 rounded cursor-pointer">
+        <span class="material-symbols-outlined text-[18px]">balance</span>
+        <span class="font-meta-sm text-meta-sm">Lean: <span id="filter-lean-label">All</span></span>
+      </div>
+      <div id="filter-all" class="sidebar-item active flex items-center gap-3 px-3 py-2 rounded cursor-pointer">
+        <span class="material-symbols-outlined text-[18px]">category</span>
+        <span class="font-meta-sm text-meta-sm">All Articles</span>
+      </div>
+      <div id="filter-rumours" class="sidebar-item flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded cursor-pointer">
+        <span class="material-symbols-outlined text-[18px]">warning</span>
+        <span class="font-meta-sm text-meta-sm">Rumours</span>
+      </div>
+      <div id="filter-sources" class="sidebar-item flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded cursor-pointer">
+        <span class="material-symbols-outlined text-[18px]">hub</span>
+        <span class="font-meta-sm text-meta-sm">Sources</span>
+      </div>
+      <div id="filter-saved" class="sidebar-item flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded cursor-pointer">
+        <span class="material-symbols-outlined text-[18px]">bookmark</span>
+        <span class="font-meta-sm text-meta-sm">Saved <span id="saved-count" class="ml-1 text-[9px] bg-primary text-on-primary rounded-full px-1.5 py-0.5 hidden">0</span></span>
+      </div>
+      <div id="filter-breaking" class="sidebar-item flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded cursor-pointer">
+        <span class="material-symbols-outlined text-[18px]">bolt</span>
+        <span class="font-meta-sm text-meta-sm">Breaking</span>
+      </div>
+      <div id="filter-sports" class="sidebar-item flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded cursor-pointer">
+        <span class="material-symbols-outlined text-[18px]">sports_soccer</span>
+        <span class="font-meta-sm text-meta-sm">Sports</span>
+      </div>
+    </nav>
+
+    <!-- Credibility Legend -->
+    <div class="mt-4 pt-4 border-t border-outline-variant">
+      <p class="font-meta-caps text-[9px] text-on-surface-variant uppercase mb-3">Credibility Key</p>
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center gap-2">
+          <div class="w-6 h-1.5 rounded credibility-high"></div>
+          <span class="font-meta-sm text-[10px] text-on-surface-variant">High (70–100%)</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="w-6 h-1.5 rounded credibility-mid"></div>
+          <span class="font-meta-sm text-[10px] text-on-surface-variant">Medium (40–69%)</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="w-6 h-1.5 rounded credibility-low"></div>
+          <span class="font-meta-sm text-[10px] text-on-surface-variant">Low (0–39%)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-auto pt-4 border-t border-outline-variant">
+      <div class="flex flex-col gap-3">
+        <div class="flex justify-between items-center">
+          <span class="font-meta-sm text-[10px] uppercase text-on-surface-variant">Density</span>
+          <span class="font-meta-sm text-[10px] text-primary">High</span>
+        </div>
+        <div class="h-1 bg-outline-variant relative"><div class="absolute inset-0 bg-primary w-3/4"></div></div>
+        <button id="refresh-btn" class="mt-2 flex items-center justify-center gap-2 px-3 py-2 bg-primary text-on-primary rounded font-meta-sm text-[10px] uppercase hover:opacity-90 transition-opacity">
+          <span class="material-symbols-outlined text-[14px]">refresh</span>
+          Refresh Feed
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 md:ml-[188px] lg:mr-[252px] px-4 md:px-8 py-6 max-w-4xl mx-auto border-r border-outline-variant min-h-screen bg-surface-container-lowest">
+
+    <!-- Feed Header -->
+    <header class="mb-10" id="feed-header">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="w-2 h-2 rounded-full bg-status-live animate-pulse"></span>
+        <span id="feed-label" class="font-meta-caps text-meta-caps text-primary uppercase">Intelligence Stream</span>
+      </div>
+      <h1 class="font-display-lg text-display-lg text-on-surface" id="feed-title">Forensic Digest</h1>
+      <p id="feed-desc" class="font-body-md text-body-md text-on-surface-variant mt-2 hidden"></p>
+    </header>
+
+    <!-- Articles panel -->
+    <div id="tab-articles" class="tab-panel active">
+      <div id="article-feed" class="flex flex-col">
+        <p class="font-body-md text-on-surface-variant py-12 text-center">Loading intelligence feed…</p>
+      </div>
+    </div>
+
+    <!-- Sources panel -->
+    <div id="tab-sources" class="tab-panel">
+      <div id="sources-feed" class="flex flex-col gap-4">
+        <p class="font-body-md text-on-surface-variant py-12 text-center">Loading sources…</p>
+      </div>
+    </div>
+
+    <!-- Saved panel -->
+    <div id="tab-saved" class="tab-panel">
+      <div id="saved-feed" class="flex flex-col">
+        <p class="font-body-md text-on-surface-variant py-12 text-center">No saved articles yet. Click the bookmark icon on any article.</p>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- RIGHT SIDEBAR -->
+  <aside class="fixed right-0 top-16 h-[calc(100vh-4rem)] w-[252px] bg-surface border-l border-outline-variant p-5 hidden lg:flex flex-col gap-6 custom-scrollbar overflow-y-auto z-30">
+    <div>
+      <h3 class="font-meta-caps text-meta-caps text-on-surface uppercase mb-4 border-b border-outline-variant pb-2">Analysis Hub</h3>
+      <div class="flex flex-col gap-5">
+
+        <!-- Lean Spectrum -->
+        <div class="p-4 bg-surface-container-low border border-outline-variant rounded">
+          <span class="font-meta-sm text-[10px] text-on-surface-variant uppercase mb-2 block">Political Lean Spectrum</span>
+          <div id="lean-spectrum"><p class="font-meta-sm text-[10px] text-on-surface-variant italic text-center">Loading…</p></div>
+        </div>
+
+        <!-- Genre Bars -->
+        <div class="p-4 border border-outline-variant rounded">
+          <span class="font-meta-sm text-[10px] text-on-surface-variant uppercase mb-4 block">Top Intelligence Genres</span>
+          <div id="genre-bars" class="flex flex-col gap-3"></div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="p-3 border border-outline-variant text-center bg-surface-container-lowest rounded">
+            <span class="font-meta-sm text-[10px] text-on-surface-variant uppercase block">Articles</span>
+            <span id="stat-sources" class="font-meta-caps text-headline-md text-primary">0</span>
+          </div>
+          <div class="p-3 border border-outline-variant text-center bg-surface-container-lowest rounded">
+            <span class="font-meta-sm text-[10px] text-on-surface-variant uppercase block">Rumours</span>
+            <span id="stat-alerts" class="font-meta-caps text-headline-md text-status-live">0</span>
+          </div>
+        </div>
+
+        <!-- Credibility Overview -->
+        <div class="p-4 border border-outline-variant rounded">
+          <span class="font-meta-sm text-[10px] text-on-surface-variant uppercase mb-3 block">Avg. Credibility Score</span>
+          <div id="credibility-overview" class="flex flex-col gap-2">
+            <p class="font-meta-sm text-[10px] text-on-surface-variant italic">Loading…</p>
+          </div>
+        </div>
+
+        <!-- Latest Archive -->
+        <div>
+          <span class="font-meta-caps text-meta-caps text-on-surface uppercase mb-3 block">Latest Archive</span>
+          <div id="archive-list" class="flex flex-col gap-3"></div>
+        </div>
+
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- FOOTER -->
+<footer class="w-full bg-surface-container-lowest border-t border-outline-variant flex flex-col md:flex-row justify-between items-center px-4 md:px-12 py-8 relative z-50 mt-12 gap-6 md:ml-[188px] lg:mr-[252px]">
+  <div class="flex flex-col gap-1 items-center md:items-start">
+    <span class="font-display-lg text-headline-md text-on-surface">NewsLens</span>
+    <p class="font-meta-sm text-meta-sm text-on-surface-variant">© 2025 NewsLens Intelligence. Credibility-First News.</p>
+  </div>
+  <div class="flex flex-wrap justify-center gap-x-8 gap-y-2">
+    <a id="api-docs-link" class="font-meta-sm text-meta-sm text-on-surface-variant hover:text-primary underline transition-colors" href="#" target="_blank">API Docs</a>
+    <a class="font-meta-sm text-meta-sm text-on-surface-variant hover:text-primary underline transition-colors" href="/app/">Dashboard</a>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
