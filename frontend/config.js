@@ -1,4 +1,4 @@
-window.NEWS_LENS_API = (() => {
+window.NEWS_LENS_API = "https://newslens-production-5f9e.up.railway.app"; (() => {
   const params = new URLSearchParams(window.location.search);
   if (params.get("api")) return params.get("api").replace(/\/$/, "");
 
