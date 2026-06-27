@@ -1,0 +1,50 @@
+{
+  // ── Python interpreter ──────────────────────────────────────────────
+  // VSCode will auto-detect the venv once it's created.
+  // If it doesn't, run: Ctrl+Shift+P → "Python: Select Interpreter"
+  // and pick the one labelled (.venv)
+  "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/Scripts/python.exe",
+
+  // Auto-activate venv in every new terminal
+  "python.terminal.activateEnvironment": true,
+  "python.terminal.activateEnvInCurrentTerminal": true,
+
+  // Load .env for the Python language server (type hints, imports)
+  "python.envFile": "${workspaceFolder}/backend/.env",
+
+  // ── Formatting ──────────────────────────────────────────────────────
+  "[python]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
+  "[javascript]": {
+    "editor.formatOnSave": true
+  },
+  "[html]": {
+    "editor.formatOnSave": false
+  },
+  "editor.tabSize": 2,
+  "editor.rulers": [88],
+
+  // ── File explorer — hide clutter ────────────────────────────────────
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.pytest_cache": true,
+    "**/backend/.venv": true,
+    "**/*.pyc": true
+  },
+
+  // ── Terminal ────────────────────────────────────────────────────────
+  "terminal.integrated.cwd": "${workspaceFolder}",
+
+  // ── Live Server (serves frontend at port 5500) ──────────────────────
+  "liveServer.settings.root": "/frontend",
+  "liveServer.settings.port": 5500,
+  "liveServer.settings.CustomBrowser": "chrome",
+  "liveServer.settings.donotShowInfoMsg": true,
+
+  // ── Test discovery ──────────────────────────────────────────────────
+  "python.testing.pytestEnabled": true,
+  "python.testing.pytestArgs": ["backend/tests"],
+  "python.testing.cwd": "${workspaceFolder}/backend"
+}

@@ -1,0 +1,15 @@
+{
+  "recommendations": [
+    "ms-python.python",
+    "ms-python.debugpy",
+    "ms-python.black-formatter",
+    "ritwickdey.liveserver",
+    "rangav.vscode-thunder-client",
+    "eamodio.gitlens",
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
+    "mtxr.sqltools",
+    "mtxr.sqltools-driver-sqlite",
+    "ms-python.pylint"
+  ]
+}

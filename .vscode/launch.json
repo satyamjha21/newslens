@@ -1,0 +1,51 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "🚀 NewsLens Backend (Windows)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": ["main:app", "--reload", "--host", "127.0.0.1", "--port", "8000"],
+      "cwd": "${workspaceFolder}/backend",
+      "python": "${workspaceFolder}/backend/.venv/Scripts/python.exe",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/backend"
+      },
+      "envFile": "${workspaceFolder}/backend/.env",
+      "jinja": true,
+      "console": "integratedTerminal",
+      "justMyCode": false
+    },
+    {
+      "name": "🚀 NewsLens Backend (Mac/Linux)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": ["main:app", "--reload", "--host", "127.0.0.1", "--port", "8000"],
+      "cwd": "${workspaceFolder}/backend",
+      "python": "${workspaceFolder}/backend/.venv/bin/python3",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/backend"
+      },
+      "envFile": "${workspaceFolder}/backend/.env",
+      "jinja": true,
+      "console": "integratedTerminal",
+      "justMyCode": false
+    },
+    {
+      "name": "🧪 Run Tests",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["tests/", "-v", "--tb=short"],
+      "cwd": "${workspaceFolder}/backend",
+      "env": {
+        "DISABLE_PIPELINES": "1",
+        "PYTHONPATH": "${workspaceFolder}/backend"
+      },
+      "envFile": "${workspaceFolder}/backend/.env",
+      "console": "integratedTerminal"
+    }
+  ]
+}
