@@ -63,6 +63,7 @@ logger.info("DB persistence: %s", database.DB_PATH)
 _FRONTEND_CANDIDATES = [
     os.path.join(os.path.dirname(__file__), "..", "frontend"),
     os.path.join(os.path.dirname(__file__), "frontend"),
+    "/opt/render/project/src/frontend",
 ]
 FRONTEND_DIR = next((p for p in _FRONTEND_CANDIDATES if os.path.isdir(p)), None)
 if FRONTEND_DIR:
